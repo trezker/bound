@@ -1,3 +1,5 @@
+import test;
+
 struct NewUser {
 	string name;
 }
@@ -42,5 +44,5 @@ unittest {
 		name: "Test"
 	};
 	userStore.Add(newUser);
-	assert(userStore.FindByName("Test").name);
+	assertEqual("Test", userStore.FindByName("Test").name);
 }
