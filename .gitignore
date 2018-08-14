@@ -1,0 +1,14 @@
+.dub
+docs.json
+__dummy.html
+docs/
+bound.so
+bound.dylib
+bound.dll
+bound.a
+bound.lib
+bound-test-*
+*.exe
+*.o
+*.obj
+*.lst
