@@ -1,3 +1,5 @@
+module interactors.UserCreator;
+
 import test;
 import entities.User;
 
@@ -24,21 +26,6 @@ class Test: TestSuite {
 		};
 		auto userCreator = new UserCreator;
 		userCreator.Add(newUser);
-	}
-	
-	void UserEntity() {
-		User user = {
-			name: "Test"
-		};
-	}
-
-	void AddUserStore() {
-		auto userStore = new UserStore;
-		NewUser newUser = {
-			name: "Test"
-		};
-		userStore.Add(newUser);
-		assertEqual("Test", userStore.FindByName("Test").name);
 	}
 }
 
