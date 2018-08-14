@@ -13,6 +13,9 @@ unittest {
 }
 
 unittest {
+	NewUser newUser = {
+		name: "Test"
+	};
 }
 
 unittest {
