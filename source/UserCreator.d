@@ -19,16 +19,6 @@ class UserCreator {
 }
 
 unittest {
-	auto userCreator = new UserCreator;
-}
-
-unittest {
-	NewUser newUser = {
-		name: "Test"
-	};
-}
-
-unittest {
 	NewUser newUser = {
 		name: "Test"
 	};
