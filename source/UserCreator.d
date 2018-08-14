@@ -6,6 +6,10 @@ struct User {
 	string name;
 }
 
+class UserStore {
+	
+}
+
 class UserCreator {
 	void Add(NewUser newUser) {
 
@@ -34,4 +38,8 @@ unittest {
 	User user = {
 		name: "Test"
 	};
+}
+
+unittest {
+	auto userStore = new UserStore;
 }
