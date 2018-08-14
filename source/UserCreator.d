@@ -7,7 +7,9 @@ struct User {
 }
 
 class UserStore {
-	
+	void Add(NewUser newUser) {
+
+	}
 }
 
 class UserCreator {
@@ -42,4 +44,8 @@ unittest {
 
 unittest {
 	auto userStore = new UserStore;
+	NewUser newUser = {
+		name: "Test"
+	};
+	userStore.Add(newUser);
 }
