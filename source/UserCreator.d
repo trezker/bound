@@ -3,7 +3,9 @@ struct NewUser {
 }
 
 class UserCreator {
-
+	void Add(NewUser newUser) {
+		
+	}
 }
 
 unittest {
@@ -11,7 +13,12 @@ unittest {
 }
 
 unittest {
+}
+
+unittest {
 	NewUser newUser = {
 		name: "Test"
 	};
+	auto userCreator = new UserCreator;
+	userCreator.Add(newUser);
 }
