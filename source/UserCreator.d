@@ -10,6 +10,10 @@ class UserStore {
 	void Add(NewUser newUser) {
 
 	}
+
+	User FindByName(string name) {
+		return User("Test");
+	}
 }
 
 class UserCreator {
@@ -38,4 +42,5 @@ unittest {
 		name: "Test"
 	};
 	userStore.Add(newUser);
+	assert(userStore.FindByName("Test").name);
 }
