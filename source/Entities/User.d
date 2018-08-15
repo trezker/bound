@@ -18,18 +18,21 @@ struct User {
 class UserStore {
 	User[] users;
 
-	void Add(NewUser newUser) {
-		if(UsernameIsFree(newUser.name)) {
-			users ~= User(
-				randomUUID,
-				newUser.name
-			);
+	bool Add(NewUser newUser) {
+		if(UsernameIsTaken(newUser.name)) {
+			return false;
 		}
+
+		users ~= User(
+			randomUUID,
+			newUser.name
+		);
+		return true;
 	}
 
-	bool UsernameIsFree(string name) {
+	bool UsernameIsTaken(string name) {
 		User[] r = users.find!((a, b) => toLower(a.name) == b)(toLower(name));
-		return r.length == 0;
+		return r.length != 0;
 	}
 
 	User[] FindByName(string name) {
@@ -86,8 +89,8 @@ class Test: TestSuite {
 		NewUser newUser = {
 			name: "Test"
 		};
-		userStore.Add(newUser);
-		userStore.Add(newUser);
+		assertEqual(true, userStore.Add(newUser));
+		assertEqual(false, userStore.Add(newUser));
 		assertEqual(1, userStore.FindByName("Test").length);
 	}
 }
