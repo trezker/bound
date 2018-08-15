@@ -3,12 +3,15 @@ module entities.User;
 import test;
 import std.algorithm;
 import std.uni;
+import std.uuid;
+import std.stdio;
 
 struct NewUser {
 	string name;
 }
 
 struct User {
+	UUID uuid;
 	string name;
 }
 
@@ -17,7 +20,10 @@ class UserStore {
 
 	void Add(NewUser newUser) {
 		if(UsernameIsFree(newUser.name)) {
-			users ~= User(newUser.name);
+			users ~= User(
+				randomUUID,
+				newUser.name
+			);
 		}
 	}
 
@@ -61,8 +67,13 @@ class Test: TestSuite {
 			name: "Test2"
 		};
 		userStore.Add(newUser2);
-		assertEqual("Test", userStore.FindByName("Test")[0].name);
-		assertEqual("Test2", userStore.FindByName("Test2")[0].name);
+
+		auto user1 = userStore.FindByName("Test")[0];
+		auto user2 = userStore.FindByName("Test2")[0];
+		assertEqual("Test", user1.name);
+		assertEqual("Test2", user2.name);
+
+		assertNotEqual(user1.uuid, user2.uuid);
 	}
 
 	void FindByName_not_existing() {
