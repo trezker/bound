@@ -1,6 +1,8 @@
 module entities.User;
 
 import test;
+import std.algorithm;
+import std.uni;
 
 struct NewUser {
 	string name;
@@ -11,12 +13,21 @@ struct User {
 }
 
 class UserStore {
-	void Add(NewUser newUser) {
+	User[] users;
 
+	void Add(NewUser newUser) {
+		if(UsernameIsFree(newUser.name)) {
+			users ~= User(newUser.name);
+		}
 	}
 
-	User FindByName(string name) {
-		return User("Test");
+	bool UsernameIsFree(string name) {
+		User[] r = users.find!((a, b) => toLower(a.name) == b)(toLower(name));
+		return r.length == 0;
+	}
+
+	User[] FindByName(string name) {
+		return users.find!((a, b) => toLower(a.name) == b)(toLower(name));
 	}
 }
 
@@ -24,6 +35,8 @@ class Test: TestSuite {
 	this() {
 		AddTest(&UserEntity);
 		AddTest(&AddUser);
+		AddTest(&FindByName_not_existing);
+		AddTest(&AddUserDuplicateNameError);
 	}
 
 	override void Setup() {
@@ -44,7 +57,27 @@ class Test: TestSuite {
 			name: "Test"
 		};
 		userStore.Add(newUser);
-		assertEqual("Test", userStore.FindByName("Test").name);
+		NewUser newUser2 = {
+			name: "Test2"
+		};
+		userStore.Add(newUser2);
+		assertEqual("Test", userStore.FindByName("Test")[0].name);
+		assertEqual("Test2", userStore.FindByName("Test2")[0].name);
+	}
+
+	void FindByName_not_existing() {
+		auto userStore = new UserStore;
+		assertEqual(0, userStore.FindByName("Test").length);
+	}
+
+	void AddUserDuplicateNameError() {
+		auto userStore = new UserStore;
+		NewUser newUser = {
+			name: "Test"
+		};
+		userStore.Add(newUser);
+		userStore.Add(newUser);
+		assertEqual(1, userStore.FindByName("Test").length);
 	}
 }
 
