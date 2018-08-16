@@ -12,3 +12,6 @@ bound-test-*
 *.o
 *.obj
 *.lst
+bound
+dub.selections.json
+notes.txt
