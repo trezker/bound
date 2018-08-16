@@ -42,10 +42,9 @@ class UserStore {
 
 class Test: TestSuite {
 	this() {
-		AddTest(&UserEntity);
-		AddTest(&AddUser);
-		AddTest(&FindByName_not_existing);
-		AddTest(&AddUserDuplicateNameError);
+		AddTest(&AddUser_stores_new_users_with_unique_ids);
+		AddTest(&Looking_up_missing_username_gives_empty_list);
+		AddTest(&Adding_existing_username_does_not_duplicate_it);
 	}
 
 	override void Setup() {
@@ -54,13 +53,7 @@ class Test: TestSuite {
 	override void Teardown() {
 	}
 
-	void UserEntity() {
-		User user = {
-			name: "Test"
-		};
-	}
-
-	void AddUser() {
+	void AddUser_stores_new_users_with_unique_ids() {
 		auto userStore = new UserStore;
 		NewUser newUser = {
 			name: "Test"
@@ -79,12 +72,12 @@ class Test: TestSuite {
 		assertNotEqual(user1.uuid, user2.uuid);
 	}
 
-	void FindByName_not_existing() {
+	void Looking_up_missing_username_gives_empty_list() {
 		auto userStore = new UserStore;
 		assertEqual(0, userStore.FindByName("Test").length);
 	}
 
-	void AddUserDuplicateNameError() {
+	void Adding_existing_username_does_not_duplicate_it() {
 		auto userStore = new UserStore;
 		NewUser newUser = {
 			name: "Test"
