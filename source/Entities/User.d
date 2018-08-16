@@ -8,6 +8,7 @@ import std.stdio;
 
 struct NewUser {
 	string name;
+	string password;
 }
 
 struct User {

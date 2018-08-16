@@ -24,7 +24,8 @@ class Test: TestSuite {
 
 	void AddUser() {
 		NewUser newUser = {
-			name: "Test"
+			name: "Test",
+			password: "foo"
 		};
 		auto userStore = new UserStore;
 		auto userCreator = new UserCreator;
