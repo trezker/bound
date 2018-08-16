@@ -4,8 +4,10 @@ import test;
 import entities.User;
 
 class UserCreator {
-	void Add(NewUser newUser) {
+	UserStore userStore;
 
+	void Add(NewUser newUser) {
+		userStore.Add(newUser);
 	}
 }
 
@@ -24,8 +26,12 @@ class Test: TestSuite {
 		NewUser newUser = {
 			name: "Test"
 		};
+		auto userStore = new UserStore;
 		auto userCreator = new UserCreator;
+		userCreator.userStore = userStore;
 		userCreator.Add(newUser);
+
+		assertEqual(1, userStore.FindByName("Test").length);
 	}
 }
 
