@@ -32,8 +32,7 @@ class UserStore {
 	}
 
 	bool UsernameIsTaken(string name) {
-		User[] r = users.find!((a, b) => toLower(a.name) == b)(toLower(name));
-		return r.length != 0;
+		return users.any!((a) => toLower(a.name) == toLower(name));
 	}
 
 	User[] FindByName(string name) {
