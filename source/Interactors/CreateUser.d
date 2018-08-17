@@ -1,11 +1,11 @@
-module interactors.UserCreator;
+module interactors.CreateUser;
 
 import test;
 import dauth;
 import entities.User;
 import entities.Key;
 
-class UserCreator {
+class CreateUser {
 	UserStore userStore;
 	KeyStore keyStore;
 
@@ -43,7 +43,7 @@ class Test: TestSuite {
 		};
 		auto userStore = new UserStore;
 		auto keyStore = new KeyStore;
-		auto userCreator = new UserCreator;
+		auto userCreator = new CreateUser;
 		userCreator.userStore = userStore;
 		userCreator.keyStore = keyStore;
 		userCreator.Add(newUser);
