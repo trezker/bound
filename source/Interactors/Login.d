@@ -6,12 +6,17 @@ import std.uuid;
 import entities.User;
 import entities.Key;
 
+struct Credentials {
+	string name;
+	string password;
+}
+
 class Login {
 	UserStore userStore;
 	KeyStore keyStore;
 
 	UUID opCall(Credentials credentials) {
-
+		return randomUUID;
 	}
 }
 
