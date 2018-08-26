@@ -2,19 +2,42 @@ module EventLog;
 
 import test;
 import std.stdio;
+import std.uuid;
+import std.datetime;
+import std.variant;
+import std.conv;
+
+struct EventTested {
+	string stringMember;
+	int intMember;
+}
+
+class Event {
+	private SysTime time;
+	private Variant data;
+
+	this(T)(T data) {
+		time = Clock.currTime();
+		this.data = data;
+	}
+
+	Variant Data() {
+		return data;
+	}
+
+	SysTime Time() {
+		return time;
+	}
+}
 
 class EventLog {
-	void Log(T)(T event) {
-		writeln(event);
+	void Log(Event event) {
+		EventTested data = *event.Data.peek!(EventTested);
+		writeln(data);
 	}
 }
 
 class Test: TestSuite {
-	struct TestObject {
-		string stringMember;
-		int intMember;
-	}
-
 	this() {
 		AddTest(&Log);
 	}
@@ -27,7 +50,9 @@ class Test: TestSuite {
 
 	void Log() {
 		auto eventLog = new EventLog();
-		eventLog.Log(TestObject("text", 11));
+		auto eventTested = EventTested("text", 11);
+
+		eventLog.Log(new Event(eventTested));
 	}
 }
 

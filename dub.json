@@ -4,7 +4,7 @@
 		"anders andersson"
 	],
 	"dependencies": {
-		"dauth": "~>0.6.3",
+		"dauth": "~>0.6.3"
 	},
 	"description": "A minimal D application.",
 	"copyright": "Copyright © 2018, anders andersson",
