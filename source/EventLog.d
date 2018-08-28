@@ -6,34 +6,38 @@ import std.uuid;
 import std.datetime;
 import std.variant;
 import std.conv;
+import std.json;
+import painlessjson;
+
+struct TestStuff {
+	string stuffString;
+	int stuffInt;
+}
 
 struct EventTested {
 	string stringMember;
 	int intMember;
+	TestStuff[] stuffs;
 }
 
-class Event {
-	private SysTime time;
-	private Variant data;
-
-	this(T)(T data) {
-		time = Clock.currTime();
-		this.data = data;
-	}
-
-	Variant Data() {
-		return data;
-	}
-
-	SysTime Time() {
-		return time;
-	}
+struct EventType {
+	string name;
+	TypeInfo typeInfo;
 }
 
 class EventLog {
-	void Log(Event event) {
-		EventTested data = *event.Data.peek!(EventTested);
-		writeln(data);
+	EventType[TypeInfo] eventTypes;
+
+	void AddType(EventType type) {
+		eventTypes[type.typeInfo] = type;
+	}
+
+	void Log(T)(T event) {
+		JSONValue json;
+		json["timestamp"] = JSONValue(Clock.currTime.toISOExtString);
+		json["data"] = event.toJSON;
+		json["type"] = eventTypes[typeid(event)].name;
+		writeln(json);
 	}
 }
 
@@ -49,10 +53,14 @@ class Test: TestSuite {
 	}
 
 	void Log() {
+		TestStuff[] stuffs;
+		stuffs ~= TestStuff("str", 14);
 		auto eventLog = new EventLog();
-		auto eventTested = EventTested("text", 11);
+		auto type = EventType("EventTested", typeid(EventTested));
+		eventLog.AddType(type);
+		auto eventTested = EventTested("text", 11, stuffs);
 
-		eventLog.Log(new Event(eventTested));
+		eventLog.Log(eventTested);
 	}
 }
 
