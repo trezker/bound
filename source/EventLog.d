@@ -23,6 +23,7 @@ struct EventTested {
 struct EventType {
 	string name;
 	TypeInfo typeInfo;
+	void delegate(JSONValue) loader;
 }
 
 class EventLog {
@@ -38,10 +39,33 @@ class EventLog {
 		json["data"] = event.toJSON;
 		json["type"] = eventTypes[typeid(event)].name;
 		writeln(json);
+		
+		File file = File("test.log", "a"); 
+		file.writeln(json.toString());
+		file.close(); 
+	}
+
+	void Load() {
+		EventType[string] eventTypesByName;
+		foreach(type; eventTypes.byValue()) {
+			eventTypesByName[type.name] = type;
+		}
+
+
+		writeln("Loading log");
+		File file = File("test.log", "r"); 
+		string line = file.readln();
+		JSONValue json = parseJSON(line);
+		writeln(json["type"]);
+		eventTypesByName[json["type"].str].loader(json);
+
+		file.close();
 	}
 }
 
 class Test: TestSuite {
+	EventTested event;
+
 	this() {
 		AddTest(&Log);
 	}
@@ -50,17 +74,30 @@ class Test: TestSuite {
 	}
 
 	override void Teardown() {
+		remove("test.log");
+	}
+
+	void Loader(JSONValue json) {
+		writeln(json);
+		
+	}
+
+	void SetEvent(EventTested e) {
+		event = e;
 	}
 
 	void Log() {
+		auto eventLog = new EventLog();
+		auto type = EventType("EventTested", typeid(EventTested), &this.Loader);
+		eventLog.AddType(type);
+
 		TestStuff[] stuffs;
 		stuffs ~= TestStuff("str", 14);
-		auto eventLog = new EventLog();
-		auto type = EventType("EventTested", typeid(EventTested));
-		eventLog.AddType(type);
 		auto eventTested = EventTested("text", 11, stuffs);
 
 		eventLog.Log(eventTested);
+
+		eventLog.Load();
 	}
 }
 
