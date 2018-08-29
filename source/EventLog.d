@@ -64,7 +64,7 @@ class EventLog {
 }
 
 class Test: TestSuite {
-	EventTested event;
+	EventTested eventLoaded;
 
 	this() {
 		AddTest(&Log);
@@ -79,11 +79,7 @@ class Test: TestSuite {
 
 	void Loader(JSONValue json) {
 		writeln(json);
-		
-	}
-
-	void SetEvent(EventTested e) {
-		event = e;
+		eventLoaded = json["data"].fromJSON!(EventTested);
 	}
 
 	void Log() {
@@ -96,8 +92,9 @@ class Test: TestSuite {
 		auto eventTested = EventTested("text", 11, stuffs);
 
 		eventLog.Log(eventTested);
-
+		
 		eventLog.Load();
+		assertEqual(eventTested, eventLoaded);
 	}
 }
 
