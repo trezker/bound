@@ -4,20 +4,29 @@ import test;
 import dauth;
 import entities.User;
 import entities.Key;
+import std.uuid;
+
+struct NewUser {
+	string name;
+	string password;
+}
 
 class CreateUser {
 	UserStore userStore;
 	KeyStore keyStore;
 
-	bool Add(NewUser newUser) {
-		if(!userStore.Add(newUser)) {
+	bool opCall(NewUser newUser) {
+		User[] user = userStore.FindByName(newUser.name);
+		if(user.length > 0) {
 			return false;
 		}
 
-		User user = userStore.FindByName(newUser.name)[0];
+		auto userCreated = UserCreated(randomUUID, newUser.name);
+		userStore.Created(userCreated);
+
 		string hashedPassword = makeHash(toPassword(newUser.password.dup)).toString();
 		NewKey newKey = {
-			lockUUID: user.uuid, 
+			lockUUID: userCreated.uuid, 
 			value: hashedPassword
 		};
 		keyStore.Add(newKey);
@@ -28,6 +37,7 @@ class CreateUser {
 class Test: TestSuite {
 	this() {
 		AddTest(&AddUser_stores_user_with_encrypted_password);
+		AddTest(&AddUser_does_not_allow_duplicate_usernames);
 	}
 
 	override void Setup() {
@@ -46,13 +56,31 @@ class Test: TestSuite {
 		auto userCreator = new CreateUser;
 		userCreator.userStore = userStore;
 		userCreator.keyStore = keyStore;
-		userCreator.Add(newUser);
+		userCreator(newUser);
 
 		auto users = userStore.FindByName("Test");
 		assertEqual(1, users.length);
 
 		auto key = keyStore.FindByLockUUID(users[0].uuid)[0];
 		assert(isSameHash(toPassword(newUser.password.dup), parseHash(key.value)));
+	}
+
+	void AddUser_does_not_allow_duplicate_usernames() {
+		NewUser newUser = {
+			name: "Test",
+			password: "foo"
+		};
+		auto userStore = new UserStore;
+		auto keyStore = new KeyStore;
+		auto userCreator = new CreateUser;
+		userCreator.userStore = userStore;
+		userCreator.keyStore = keyStore;
+
+		userCreator(newUser);
+		userCreator(newUser);
+
+		auto users = userStore.FindByName("Test");
+		assertEqual(1, users.length);
 	}
 }
 
