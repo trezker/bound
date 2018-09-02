@@ -36,8 +36,8 @@ class CreateUser {
 
 class Test: TestSuite {
 	this() {
-		AddTest(&AddUser_stores_user_with_encrypted_password);
-		AddTest(&AddUser_does_not_allow_duplicate_usernames);
+		AddTest(&CreateUser_stores_user_with_encrypted_password);
+		AddTest(&CreateUser_does_not_allow_duplicate_usernames);
 	}
 
 	override void Setup() {
@@ -46,7 +46,7 @@ class Test: TestSuite {
 	override void Teardown() {
 	}
 
-	void AddUser_stores_user_with_encrypted_password() {
+	void CreateUser_stores_user_with_encrypted_password() {
 		NewUser newUser = {
 			name: "Test",
 			password: "foo"
@@ -65,7 +65,7 @@ class Test: TestSuite {
 		assert(isSameHash(toPassword(newUser.password.dup), parseHash(key.value)));
 	}
 
-	void AddUser_does_not_allow_duplicate_usernames() {
+	void CreateUser_does_not_allow_duplicate_usernames() {
 		NewUser newUser = {
 			name: "Test",
 			password: "foo"
