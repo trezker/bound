@@ -5,6 +5,10 @@ import dauth;
 import entities.User;
 import entities.Key;
 import std.uuid;
+import std.stdio;
+import EventLog;
+import std.json;
+import painlessjson;
 
 struct NewUser {
 	string name;
@@ -14,6 +18,7 @@ struct NewUser {
 class CreateUser {
 	UserStore userStore;
 	KeyStore keyStore;
+	EventLog eventLog;
 
 	bool opCall(NewUser newUser) {
 		User[] user = userStore.FindByName(newUser.name);
@@ -22,6 +27,7 @@ class CreateUser {
 		}
 
 		auto userCreated = UserCreated(randomUUID, newUser.name);
+		eventLog.Log(userCreated);
 		userStore.Created(userCreated);
 
 		string hashedPassword = makeHash(toPassword(newUser.password.dup)).toString();
@@ -35,15 +41,39 @@ class CreateUser {
 }
 
 class Test: TestSuite {
+	UserStore userStore;
+	KeyStore keyStore;
+	CreateUser userCreator;
+	EventLog eventLog;
+
 	this() {
 		AddTest(&CreateUser_stores_user_with_encrypted_password);
 		AddTest(&CreateUser_does_not_allow_duplicate_usernames);
+		AddTest(&Adding_user_writes_to_eventlog);
 	}
 
 	override void Setup() {
+		userStore = new UserStore;
+		keyStore = new KeyStore;
+
+		eventLog = new EventLog();
+		eventLog.path = "test.log";
+		auto type = EventType("UserCreated", typeid(UserCreated), &this.Loader);
+		eventLog.AddType(type);
+
+		userCreator = new CreateUser;
+		userCreator.userStore = userStore;
+		userCreator.keyStore = keyStore;
+		userCreator.eventLog = eventLog;
 	}
 
 	override void Teardown() {
+		remove("test.log");
+	}
+
+	UserCreated[] usersLoadedFromEventLog;
+	void Loader(JSONValue json) {
+		usersLoadedFromEventLog ~= json["data"].fromJSON!(UserCreated);
 	}
 
 	void CreateUser_stores_user_with_encrypted_password() {
@@ -51,12 +81,7 @@ class Test: TestSuite {
 			name: "Test",
 			password: "foo"
 		};
-		auto userStore = new UserStore;
-		auto keyStore = new KeyStore;
-		auto userCreator = new CreateUser;
-		userCreator.userStore = userStore;
-		userCreator.keyStore = keyStore;
-		userCreator(newUser);
+		userCreator(newUser);		
 
 		auto users = userStore.FindByName("Test");
 		assertEqual(1, users.length);
@@ -70,17 +95,23 @@ class Test: TestSuite {
 			name: "Test",
 			password: "foo"
 		};
-		auto userStore = new UserStore;
-		auto keyStore = new KeyStore;
-		auto userCreator = new CreateUser;
-		userCreator.userStore = userStore;
-		userCreator.keyStore = keyStore;
 
 		userCreator(newUser);
 		userCreator(newUser);
 
 		auto users = userStore.FindByName("Test");
 		assertEqual(1, users.length);
+	}
+
+	void Adding_user_writes_to_eventlog() {
+		NewUser newUser = {
+			name: "Test",
+			password: "foo"
+		};
+		userCreator(newUser);
+
+		eventLog.Load();
+		assertEqual(1, usersLoadedFromEventLog.length);
 	}
 }
 

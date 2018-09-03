@@ -33,7 +33,7 @@ class UserStore {
 
 class Test: TestSuite {
 	this() {
-		AddTest(&Created_stores_new_users);
+		AddTest(&Can_store_a_new_user);
 		AddTest(&Looking_up_missing_username_gives_empty_list);
 	}
 
@@ -43,25 +43,16 @@ class Test: TestSuite {
 	override void Teardown() {
 	}
 
-	void Created_stores_new_users() {
+	void Can_store_a_new_user() {
 		auto userStore = new UserStore;
 		UserCreated newUser = {
 			uuid: randomUUID,
 			name: "Test"
 		};
 		userStore.Created(newUser);
-		UserCreated newUser2 = {
-			uuid: randomUUID,
-			name: "Test2"
-		};
-		userStore.Created(newUser2);
 
 		auto user1 = userStore.FindByName("Test")[0];
-		auto user2 = userStore.FindByName("Test2")[0];
 		assertEqual("Test", user1.name);
-		assertEqual("Test2", user2.name);
-
-		assertNotEqual(user1.uuid, user2.uuid);
 	}
 
 	void Looking_up_missing_username_gives_empty_list() {
