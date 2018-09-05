@@ -5,6 +5,7 @@ import dauth;
 import std.uuid;
 import entities.User;
 import entities.Key;
+import entities.Session;
 
 struct Credentials {
 	string name;
@@ -14,21 +15,33 @@ struct Credentials {
 class Login {
 	UserStore userStore;
 	KeyStore keyStore;
+	SessionStore sessionStore;
 
 	UUID opCall(Credentials credentials) {
-		return randomUUID;
+		User[] users = userStore.FindByName(credentials.name);
+
+		auto sessionCreated = SessionCreated(randomUUID, users[0].uuid);
+		sessionStore.Created(sessionCreated);
+		return sessionCreated.uuid;
 	}
 }
 
 class Test: TestSuite {
 	this() {
-		AddTest(&ads);
+		AddTest(&Login_creates_session_associated_with_user);
 	}
 
-	void ads() {
+	void Login_creates_session_associated_with_user() {
+		auto sessionStore = new SessionStore;
+		auto userStore = new UserStore;
+
 		auto login = new Login;
-		login.userStore = new UserStore;
+		login.userStore = userStore;
 		login.keyStore = new KeyStore;
+		login.sessionStore = sessionStore;
+
+		auto userCreated = UserCreated(randomUUID, "Test");
+		userStore.Created(userCreated);
 
 		Credentials credentials = {
 			name: "Test",
@@ -37,6 +50,9 @@ class Test: TestSuite {
 		UUID sessionUUID = login(credentials);
 
 		assertNotEqual(sessionUUID, UUID.init);
+
+		auto currentUser = sessionStore.FindByUUID(sessionUUID);
+		assertEqual(currentUser[0].useruuid, userCreated.uuid);
 	}
 }
 
