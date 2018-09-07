@@ -87,6 +87,15 @@ class Test: TestSuite {
 		UUID sessionUUID = login(credentials);
 		assertEqual(sessionUUID, UUID.init);
 	}
+
+	void Incorrect_username_fails() {
+		Credentials credentials = {
+			name: "Nouser",
+			password: "test"
+		};
+		UUID sessionUUID = login(credentials);
+		assertEqual(sessionUUID, UUID.init);
+	}
 }
 
 unittest {
