@@ -20,6 +20,15 @@ class Login {
 	UUID opCall(Credentials credentials) {
 		User[] users = userStore.FindByName(credentials.name);
 
+		if(users.length == 0) {
+			return UUID.init;
+		}
+
+		auto key = keyStore.FindByLockUUID(users[0].uuid)[0];
+		if(!isSameHash(toPassword(credentials.password.dup), parseHash(key.value))) {
+			return UUID.init;
+		}
+
 		auto sessionCreated = SessionCreated(randomUUID, users[0].uuid);
 		sessionStore.Created(sessionCreated);
 		return sessionCreated.uuid;
@@ -27,22 +36,37 @@ class Login {
 }
 
 class Test: TestSuite {
+	Login login;
+	SessionStore sessionStore;
+	UserCreated userCreated;
+
 	this() {
 		AddTest(&Login_creates_session_associated_with_user);
+		AddTest(&Incorrect_password_fails);
+	}
+
+	override void Setup() {
+		sessionStore = new SessionStore;
+		auto userStore = new UserStore;
+		auto keyStore = new KeyStore;
+
+		login = new Login;
+		login.userStore = userStore;
+		login.keyStore = keyStore;
+		login.sessionStore = sessionStore;
+
+		userCreated = UserCreated(randomUUID, "Test");
+		userStore.Created(userCreated);
+
+		string hashedPassword = makeHash(toPassword("test".dup)).toString();
+		NewKey newKey = {
+			lockUUID: userCreated.uuid, 
+			value: hashedPassword
+		};
+		keyStore.Add(newKey);
 	}
 
 	void Login_creates_session_associated_with_user() {
-		auto sessionStore = new SessionStore;
-		auto userStore = new UserStore;
-
-		auto login = new Login;
-		login.userStore = userStore;
-		login.keyStore = new KeyStore;
-		login.sessionStore = sessionStore;
-
-		auto userCreated = UserCreated(randomUUID, "Test");
-		userStore.Created(userCreated);
-
 		Credentials credentials = {
 			name: "Test",
 			password: "test"
@@ -53,6 +77,15 @@ class Test: TestSuite {
 
 		auto currentUser = sessionStore.FindByUUID(sessionUUID);
 		assertEqual(currentUser[0].useruuid, userCreated.uuid);
+	}
+
+	void Incorrect_password_fails() {
+		Credentials credentials = {
+			name: "Test",
+			password: "wrong"
+		};
+		UUID sessionUUID = login(credentials);
+		assertEqual(sessionUUID, UUID.init);
 	}
 }
 
