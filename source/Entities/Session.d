@@ -2,7 +2,7 @@ module entities.Session;
 
 import std.uuid;
 import std.algorithm;
-
+import std.array;
 
 struct SessionCreated {
 	UUID uuid;
@@ -22,6 +22,10 @@ class SessionStore {
 			sessionCreated.uuid, 
 			sessionCreated.useruuid
 		);
+	}
+
+	void Deleted(UUID uuid) {
+		sessions = filter!(a => a.uuid != uuid)(sessions).array;
 	}
 
 	Session[] FindByUUID(UUID uuid) {
