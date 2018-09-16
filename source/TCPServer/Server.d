@@ -7,6 +7,30 @@ import std.stdio;
 import core.thread;
 import test;
 
+string ReadMessage(Socket socket) {
+	ubyte[8] binarylength;
+	auto l = socket.receive(binarylength);
+	auto length = bigEndianToNative!long(binarylength);
+
+	string message;
+
+	long total = 0;
+	char[] buffer;
+	buffer.length = length;
+	while(total < length) {
+		auto got = socket.receive(buffer);
+		total += got;
+		message ~= buffer[0 .. got];
+	}
+	return message;
+}
+
+void SendMessage(Socket socket, string message) {
+	ubyte[8] binarylength = nativeToBigEndian(message.length);
+	socket.send(binarylength);
+	socket.send(message);
+}
+
 alias MessageHandler = JSONValue delegate(JSONValue message);
 class Server {
 	MessageHandler[string] handlers;
@@ -15,24 +39,6 @@ class Server {
 
 	void SetHandler(string name, MessageHandler handler) {
 		handlers[name] = handler;
-	}
-
-	string ReadMessage(Socket socket) {
-		ubyte[8] binarylength;
-		auto l = socket.receive(binarylength);
-		auto length = bigEndianToNative!long(binarylength);
-
-		string message;
-
-		long total = 0;
-		char[] buffer;
-		buffer.length = length;
-		while(total < length) {
-			auto got = socket.receive(buffer);
-			total += got;
-			message ~= buffer[0 .. got];
-		}
-		return message;
 	}
 
 	void Stop() {
@@ -79,7 +85,7 @@ class Server {
 								JSONValue json = parseJSON(message);
 								writeln("Received: ", json);
 								JSONValue response = handlers[json["handler"].str](json);
-								client.send(response.toString());
+								SendMessage(client, response.toString());
 							}
 							catch(Exception e) {
 								writeln(e);
@@ -91,7 +97,6 @@ class Server {
 				if(readSet.isSet(listener)) {
 					auto newSocket = listener.accept();
 					connectedClients ~= newSocket;
-					newSocket.send("Listening");
 					writeln("Client connected");
 				}
 			}
@@ -123,29 +128,24 @@ class Test: TestSuite {
 		}
 		writeln("Confirmed server is listening");
 
-		//TODO: Set up a client, send message and verify response.
 		auto socket = new Socket(AddressFamily.INET,  SocketType.STREAM);
 		socket.connect(new InternetAddress("localhost", 2525));
 
-		char[512] buffer;
-		socket.receive(buffer);
-
 		string message = "{\"handler\": \"test\", \"sent\": \"text\"}";
-		ubyte[8] binarylength = nativeToBigEndian(message.length);
-		socket.send(binarylength);
-		socket.send(message);
+		SendMessage(socket, message);
 		writeln("Sent message");
 
 		auto readSet = new SocketSet();
 		while(true) {
+			//TODO: Do we actually need any yielding
 			Thread.yield();
-//			Thread.sleep( dur!("msecs")( 1000 ) ); 
 			readSet.reset();
 			readSet.add(socket);
 			if(Socket.select(readSet, null, null)) {
 				writeln("Client reading");
-				auto received = socket.receive(buffer);
-				writeln(buffer[0 .. received]);
+				//TODO: Then I should also implement a generic client class that handles sending and receiving.
+				string received = ReadMessage(socket);
+				writeln(received);
 				break;
 			}
 		}
