@@ -47,7 +47,6 @@ class Server {
 	}
 
 	void Run() {
-		writeln("Run server");
 		auto listener = new Socket(
 			AddressFamily.INET, 
 			SocketType.STREAM, 
@@ -57,25 +56,22 @@ class Server {
 		listener.bind(new InternetAddress("localhost", 2525));
 		listener.listen(10);
 		listening = true;
-		writeln("Server listening");
 
 		auto readSet = new SocketSet();
 		Socket[] connectedClients;
 
 		while(!stopped) {
-			Thread.yield();
 			readSet.reset();
 			readSet.add(listener);
-			foreach(client; connectedClients)
+			foreach(client; connectedClients) {
 				readSet.add(client);
-			
-			if(Socket.select(readSet, null, null)) {
+			}
+
+			if(Socket.select(readSet, null, null, dur!"msecs"(1))) {
 				foreach(client; connectedClients) {
 					if(readSet.isSet(client)) {
 						string message = ReadMessage(client);
-						writeln("Received: ", message);
 						if(message.length == 0) {
-							writeln("Client disconnected");
 							connectedClients = 
 								filter!(a => a != client)
 								(connectedClients).array;
@@ -83,7 +79,6 @@ class Server {
 						else {
 							try {
 								JSONValue json = parseJSON(message);
-								writeln("Received: ", json);
 								JSONValue response = handlers[json["handler"].str](json);
 								SendMessage(client, response.toString());
 							}
@@ -97,7 +92,6 @@ class Server {
 				if(readSet.isSet(listener)) {
 					auto newSocket = listener.accept();
 					connectedClients ~= newSocket;
-					writeln("Client connected");
 				}
 			}
 		}
@@ -120,37 +114,31 @@ class Test: TestSuite {
 		server.SetHandler("test", &this.MessageHandler);
 
 		auto serverThread = new Thread(&server.Run).start();
-		writeln("Started serverThread");
-		while(!server.listening) {
-			writeln("Waiting");
-			Thread.yield();
-			Thread.sleep( dur!("msecs")( 1000 ) ); 
-		}
-		writeln("Confirmed server is listening");
+		while(!server.listening) {}
 
 		auto socket = new Socket(AddressFamily.INET,  SocketType.STREAM);
 		socket.connect(new InternetAddress("localhost", 2525));
 
 		string message = "{\"handler\": \"test\", \"sent\": \"text\"}";
 		SendMessage(socket, message);
-		writeln("Sent message");
 
+		string received;
 		auto readSet = new SocketSet();
 		while(true) {
-			//TODO: Do we actually need any yielding
-			Thread.yield();
 			readSet.reset();
 			readSet.add(socket);
 			if(Socket.select(readSet, null, null)) {
-				writeln("Client reading");
-				//TODO: Then I should also implement a generic client class that handles sending and receiving.
-				string received = ReadMessage(socket);
-				writeln(received);
+				//TODO: I should also implement a generic client class that handles sending and receiving.
+				received = ReadMessage(socket);
 				break;
 			}
 		}
 
+		JSONValue json = parseJSON(received);
+		assertEqual("text", json["got"].str);
+
 		server.Stop();
+		serverThread.join();
 	}
 }
 
