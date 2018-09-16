@@ -36,6 +36,7 @@ class Server {
 	MessageHandler[string] handlers;
 	bool listening = false;
 	bool stopped = false;
+	Socket[] connectedClients;
 
 	void SetHandler(string name, MessageHandler handler) {
 		handlers[name] = handler;
@@ -52,13 +53,16 @@ class Server {
 			SocketType.STREAM, 
 			ProtocolType.TCP
 		);
-		listener.setOption(SocketOptionLevel.SOCKET, SocketOption.REUSEADDR, true);
+		listener.setOption(
+			SocketOptionLevel.SOCKET, 
+			SocketOption.REUSEADDR, 
+			true
+		);
 		listener.bind(new InternetAddress("localhost", 2525));
 		listener.listen(10);
 		listening = true;
 
 		auto readSet = new SocketSet();
-		Socket[] connectedClients;
 
 		while(!stopped) {
 			readSet.reset();
@@ -70,22 +74,7 @@ class Server {
 			if(Socket.select(readSet, null, null, dur!"msecs"(1))) {
 				foreach(client; connectedClients) {
 					if(readSet.isSet(client)) {
-						string message = ReadMessage(client);
-						if(message.length == 0) {
-							connectedClients = 
-								filter!(a => a != client)
-								(connectedClients).array;
-						}
-						else {
-							try {
-								JSONValue json = parseJSON(message);
-								JSONValue response = handlers[json["handler"].str](json);
-								SendMessage(client, response.toString());
-							}
-							catch(Exception e) {
-								writeln(e);
-							}
-						}
+						HandleClient(client);
 					}
 				}
 
@@ -93,6 +82,25 @@ class Server {
 					auto newSocket = listener.accept();
 					connectedClients ~= newSocket;
 				}
+			}
+		}
+	}
+
+	void HandleClient(Socket client) {
+		string message = ReadMessage(client);
+		if(message.length == 0) {
+			connectedClients = 
+				filter!(a => a != client)
+				(connectedClients).array;
+		}
+		else {
+			try {
+				JSONValue json = parseJSON(message);
+				JSONValue response = handlers[json["handler"].str](json);
+				SendMessage(client, response.toString());
+			}
+			catch(Exception e) {
+				writeln(e);
 			}
 		}
 	}
@@ -116,7 +124,11 @@ class Test: TestSuite {
 		auto serverThread = new Thread(&server.Run).start();
 		while(!server.listening) {}
 
-		auto socket = new Socket(AddressFamily.INET,  SocketType.STREAM);
+		auto socket = new Socket(
+			AddressFamily.INET, 
+			SocketType.STREAM, 
+			ProtocolType.TCP
+		);
 		socket.connect(new InternetAddress("localhost", 2525));
 
 		string message = "{\"handler\": \"test\", \"sent\": \"text\"}";
