@@ -2,6 +2,7 @@ module Network.Protocol;
 
 import std.socket;
 import std.bitmanip;
+import std.stdio;
 
 string ReadMessage(Socket socket) {
 	ubyte[8] binarylength;

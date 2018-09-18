@@ -15,6 +15,7 @@ class Server {
 	bool listening = false;
 	bool stopped = false;
 	Socket[] connectedClients;
+	InternetAddress internetAddress;
 
 	void SetHandler(string name, MessageHandler handler) {
 		handlers[name] = handler;
@@ -36,7 +37,7 @@ class Server {
 			SocketOption.REUSEADDR, 
 			true
 		);
-		listener.bind(new InternetAddress("localhost", 2525));
+		listener.bind(internetAddress);
 		listener.listen(10);
 		listening = true;
 
@@ -97,6 +98,7 @@ class Test: TestSuite {
 
 	void Server_calls_handler_for_a_message() {
 		auto server = new Server;
+		server.internetAddress = new InternetAddress("localhost", 2525);
 		server.SetHandler("test", &this.MessageHandler);
 
 		auto serverThread = new Thread(&server.Run).start();
@@ -107,7 +109,7 @@ class Test: TestSuite {
 			SocketType.STREAM, 
 			ProtocolType.TCP
 		);
-		socket.connect(new InternetAddress("localhost", 2525));
+		socket.connect(server.internetAddress);
 
 		string message = "{\"handler\": \"test\", \"sent\": \"text\"}";
 		SendMessage(socket, message);
@@ -118,7 +120,6 @@ class Test: TestSuite {
 			readSet.reset();
 			readSet.add(socket);
 			if(Socket.select(readSet, null, null)) {
-				//TODO: I should also implement a generic client class that handles sending and receiving.
 				received = ReadMessage(socket);
 				break;
 			}
@@ -134,5 +135,5 @@ class Test: TestSuite {
 
 unittest {
 	auto test = new Test;
-	test.Run();
+	//test.Run();
 }
