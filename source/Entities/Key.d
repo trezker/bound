@@ -9,7 +9,7 @@ struct NewKey {
 }
 
 struct Key {
-	UUID uuid;
+	string uuid;
 	string lockUUID;
 	string value;
 }
@@ -19,7 +19,7 @@ class KeyStore {
 
 	void Add(NewKey newKey) {
 		keys ~= Key(
-			randomUUID,
+			randomUUID.toString,
 			newKey.lockUUID,
 			newKey.value
 		);
