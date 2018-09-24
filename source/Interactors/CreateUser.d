@@ -36,6 +36,7 @@ class CreateUser {
 			lock: userCreated.uuid, 
 			value: hashedPassword
 		};
+		eventLog.Log(keyCreated);
 		keyStore.Created(keyCreated);
 		return true;
 	}
@@ -59,8 +60,10 @@ class Test: TestSuite {
 
 		eventLog = new EventLog();
 		eventLog.path = "test.log";
-		auto type = EventType("UserCreated", typeid(UserCreated), &this.Loader);
-		eventLog.AddType(type);
+		auto userCreatedType = EventType("UserCreated", typeid(UserCreated), &this.UserLoader);
+		eventLog.AddType(userCreatedType);
+		auto keyCreatedType = EventType("KeyCreated", typeid(KeyCreated), &this.KeyLoader);
+		eventLog.AddType(keyCreatedType);
 
 		userCreator = new CreateUser;
 		userCreator.userStore = userStore;
@@ -73,8 +76,12 @@ class Test: TestSuite {
 	}
 
 	UserCreated[] usersLoadedFromEventLog;
-	void Loader(JSONValue json) {
+	KeyCreated[] keysLoadedFromEventLog;
+	void UserLoader(JSONValue json) {
 		usersLoadedFromEventLog ~= json["data"].fromJSON!(UserCreated);
+	}
+	void KeyLoader(JSONValue json) {
+		keysLoadedFromEventLog ~= json["data"].fromJSON!(KeyCreated);
 	}
 
 	void CreateUser_stores_user_with_encrypted_password() {
