@@ -70,11 +70,12 @@ class Test: TestSuite {
 		userStore.Created(userCreated);
 
 		string hashedPassword = makeHash(toPassword("test".dup)).toString();
-		NewKey newKey = {
-			lockUUID: userCreated.uuid, 
+		KeyCreated keyCreated = {
+			uuid: randomUUID.toString,
+			lock: userCreated.uuid, 
 			value: hashedPassword
 		};
-		keyStore.Add(newKey);
+		keyStore.Created(keyCreated);
 	}
 
 	void Login_creates_session_associated_with_user() {

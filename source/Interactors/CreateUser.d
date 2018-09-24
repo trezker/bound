@@ -31,11 +31,12 @@ class CreateUser {
 		userStore.Created(userCreated);
 
 		string hashedPassword = makeHash(toPassword(newUser.password.dup)).toString();
-		NewKey newKey = {
-			lockUUID: userCreated.uuid, 
+		KeyCreated keyCreated = {
+			uuid: randomUUID.toString,
+			lock: userCreated.uuid, 
 			value: hashedPassword
 		};
-		keyStore.Add(newKey);
+		keyStore.Created(keyCreated);
 		return true;
 	}
 }

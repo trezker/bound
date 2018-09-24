@@ -4,11 +4,6 @@ import std.uuid;
 import std.algorithm;
 import test;
 
-struct NewKey {
-	string lockUUID;
-	string value;
-}
-
 struct KeyCreated {
 	string uuid;
 	string lock;
@@ -23,14 +18,6 @@ struct Key {
 
 class KeyStore {
 	Key[] keys;
-
-	void Add(NewKey newKey) {
-		keys ~= Key(
-			randomUUID.toString,
-			newKey.lockUUID,
-			newKey.value
-		);
-	}
 
 	void Created(KeyCreated keyCreated) {
 		keys ~= Key(
