@@ -13,6 +13,7 @@ struct SessionCreated {
 struct Session {
 	UUID uuid;
 	UUID useruuid;
+	string[string] values;
 }
 
 class SessionStore {
@@ -70,6 +71,21 @@ class Test: TestSuite {
 
 		auto sessions = sessionStore.FindByUUID(newSession.uuid);
 		assertEqual(0, sessions.length);
+	}
+
+	void Data_can_be_stored() {
+		auto sessionStore = new SessionStore;
+		SessionCreated newSession = {
+			uuid: randomUUID,
+			useruuid: randomUUID,
+		};
+		sessionStore.Created(newSession);
+
+		auto sessions = sessionStore.FindByUUID(newSession.uuid);
+
+		sessions[0].values["test"] = "value";
+
+		assert("value", sessions[0].values["test"]);
 	}
 }
 
