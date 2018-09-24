@@ -7,8 +7,8 @@ import entities.Session;
 class CreateSession {
 	SessionStore sessionStore;
 
-	UUID opCall() {
-		auto sessionCreated = SessionCreated(randomUUID);
+	string opCall() {
+		auto sessionCreated = SessionCreated(randomUUID.toString);
 		sessionStore.Created(sessionCreated);
 		return sessionCreated.uuid;
 	}
@@ -30,9 +30,9 @@ class Test: TestSuite {
 	}
 
 	void CreateSession_creates_session_and_returns_uuid() {
-		UUID sessionUUID = createSession();
+		string sessionUUID = createSession();
 
-		assertNotEqual(sessionUUID, UUID.init);
+		assertNotEqual(sessionUUID, UUID.init.toString);
 
 		auto currentUser = sessionStore.FindByUUID(sessionUUID);
 		assertEqual(1, currentUser.length);

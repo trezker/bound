@@ -6,11 +6,11 @@ import std.array;
 import test;
 
 struct SessionCreated {
-	UUID uuid;
+	string uuid;
 }
 
 struct Session {
-	UUID uuid;
+	string uuid;
 	string[string] values;
 }
 
@@ -21,11 +21,11 @@ class SessionStore {
 		sessions ~= Session(sessionCreated.uuid);
 	}
 
-	void Deleted(UUID uuid) {
+	void Deleted(string uuid) {
 		sessions = filter!(a => a.uuid != uuid)(sessions).array;
 	}
 
-	Session[] FindByUUID(UUID uuid) {
+	Session[] FindByUUID(string uuid) {
 		return sessions.find!((a) => a.uuid == uuid)();
 	}	
 }
@@ -45,7 +45,7 @@ class Test: TestSuite {
 	void Created_stores_a_new_session() {
 		auto sessionStore = new SessionStore;
 		SessionCreated newSession = {
-			uuid: randomUUID
+			uuid: randomUUID.toString
 		};
 		sessionStore.Created(newSession);
 
@@ -56,7 +56,7 @@ class Test: TestSuite {
 	void Deleted_removes_session() {
 		auto sessionStore = new SessionStore;
 		SessionCreated newSession = {
-			uuid: randomUUID
+			uuid: randomUUID.toString
 		};
 		sessionStore.Created(newSession);
 
@@ -69,7 +69,7 @@ class Test: TestSuite {
 	void Data_can_be_stored() {
 		auto sessionStore = new SessionStore;
 		SessionCreated newSession = {
-			uuid: randomUUID
+			uuid: randomUUID.toString
 		};
 		sessionStore.Created(newSession);
 

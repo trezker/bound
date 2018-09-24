@@ -9,7 +9,7 @@ import std.stdio;
 class Logout {
 	SessionStore sessionStore;
 
-	void opCall(UUID uuid) {
+	void opCall(string uuid) {
 		sessionStore.Deleted(uuid);
 	}
 }
@@ -21,7 +21,7 @@ class Test: TestSuite {
 
 	void Logout_removes_session() {
 		auto sessionStore = new SessionStore;
-		auto sessionCreated = SessionCreated(randomUUID);
+		auto sessionCreated = SessionCreated(randomUUID.toString);
 		sessionStore.Created(sessionCreated);
 
 		auto logout = new Logout;

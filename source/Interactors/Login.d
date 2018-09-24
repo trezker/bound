@@ -10,7 +10,7 @@ import entities.Session;
 import painlessjson;
 
 struct Credentials {
-	UUID session;
+	string session;
 	string name;
 	string password;
 }
@@ -63,7 +63,7 @@ class Test: TestSuite {
 		login.keyStore = keyStore;
 		login.sessionStore = sessionStore;
 
-		sessionCreated = SessionCreated(randomUUID);
+		sessionCreated = SessionCreated(randomUUID.toString);
 		sessionStore.Created(sessionCreated);
 
 		userCreated = UserCreated(randomUUID.toString, "Test");
