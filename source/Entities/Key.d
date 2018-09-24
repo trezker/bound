@@ -12,7 +12,7 @@ struct KeyCreated {
 
 struct Key {
 	string uuid;
-	string lockUUID;
+	string lock;
 	string value;
 }
 
@@ -27,8 +27,8 @@ class KeyStore {
 		);
 	}
 
-	Key[] FindByLockUUID(string lockUUID) {
-		return keys.find!((a, b) => a.lockUUID == b)(lockUUID);
+	Key[] FindByLock(string lock) {
+		return keys.find!((a, b) => a.lock == b)(lock);
 	}
 }
 
@@ -53,7 +53,7 @@ class Test: TestSuite {
 		};
 		keyStore.Created(keyCreated);
 
-		auto keys = keyStore.FindByLockUUID(keyCreated.lock);
+		auto keys = keyStore.FindByLock(keyCreated.lock);
 		assertEqual(1, keys.length);
 	}
 }

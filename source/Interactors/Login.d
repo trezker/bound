@@ -27,7 +27,7 @@ class Login {
 			return false;
 		}
 
-		auto key = keyStore.FindByLockUUID(users[0].uuid)[0];
+		auto key = keyStore.FindByLock(users[0].uuid)[0];
 		if(!isSameHash(toPassword(credentials.password.dup), parseHash(key.value))) {
 			return false;
 		}

@@ -87,7 +87,7 @@ class Test: TestSuite {
 		auto users = userStore.FindByName("Test");
 		assertEqual(1, users.length);
 
-		auto key = keyStore.FindByLockUUID(users[0].uuid)[0];
+		auto key = keyStore.FindByLock(users[0].uuid)[0];
 		assert(isSameHash(toPassword(newUser.password.dup), parseHash(key.value)));
 	}
 
