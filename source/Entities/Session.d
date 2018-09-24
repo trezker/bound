@@ -7,12 +7,10 @@ import test;
 
 struct SessionCreated {
 	UUID uuid;
-	UUID useruuid;
 }
 
 struct Session {
 	UUID uuid;
-	UUID useruuid;
 	string[string] values;
 }
 
@@ -20,10 +18,7 @@ class SessionStore {
 	Session[] sessions;
 
 	void Created(SessionCreated sessionCreated) {
-		sessions ~= Session(
-			sessionCreated.uuid, 
-			sessionCreated.useruuid
-		);
+		sessions ~= Session(sessionCreated.uuid);
 	}
 
 	void Deleted(UUID uuid) {
@@ -50,8 +45,7 @@ class Test: TestSuite {
 	void Created_stores_a_new_session() {
 		auto sessionStore = new SessionStore;
 		SessionCreated newSession = {
-			uuid: randomUUID,
-			useruuid: randomUUID,
+			uuid: randomUUID
 		};
 		sessionStore.Created(newSession);
 
@@ -62,8 +56,7 @@ class Test: TestSuite {
 	void Deleted_removes_session() {
 		auto sessionStore = new SessionStore;
 		SessionCreated newSession = {
-			uuid: randomUUID,
-			useruuid: randomUUID,
+			uuid: randomUUID
 		};
 		sessionStore.Created(newSession);
 
@@ -76,8 +69,7 @@ class Test: TestSuite {
 	void Data_can_be_stored() {
 		auto sessionStore = new SessionStore;
 		SessionCreated newSession = {
-			uuid: randomUUID,
-			useruuid: randomUUID,
+			uuid: randomUUID
 		};
 		sessionStore.Created(newSession);
 

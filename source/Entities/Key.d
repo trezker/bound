@@ -4,13 +4,13 @@ import std.uuid;
 import std.algorithm;
 
 struct NewKey {
-	UUID lockUUID;
+	string lockUUID;
 	string value;
 }
 
 struct Key {
 	UUID uuid;
-	UUID lockUUID;
+	string lockUUID;
 	string value;
 }
 
@@ -25,7 +25,7 @@ class KeyStore {
 		);
 	}
 
-	Key[] FindByLockUUID(UUID lockUUID) {
+	Key[] FindByLockUUID(string lockUUID) {
 		return keys.find!((a, b) => a.lockUUID == b)(lockUUID);
 	}
 }

@@ -7,12 +7,12 @@ import std.uuid;
 import std.stdio;
 
 struct UserCreated {
-	UUID uuid;
+	string uuid;
 	string name;
 }
 
 struct User {
-	UUID uuid;
+	string uuid;
 	string name;
 }
 
@@ -46,7 +46,7 @@ class Test: TestSuite {
 	void Can_store_a_new_user() {
 		auto userStore = new UserStore;
 		UserCreated newUser = {
-			uuid: randomUUID,
+			uuid: randomUUID.toString,
 			name: "Test"
 		};
 		userStore.Created(newUser);

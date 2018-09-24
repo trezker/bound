@@ -79,7 +79,6 @@ class Test: TestSuite {
 	}
 
 	void Loader(JSONValue json) {
-		//writeln(json);
 		eventsLoaded ~= json["data"].fromJSON!(EventTested);
 	}
 

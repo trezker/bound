@@ -26,7 +26,7 @@ class CreateUser {
 			return false;
 		}
 
-		auto userCreated = UserCreated(randomUUID, newUser.name);
+		auto userCreated = UserCreated(randomUUID.toString, newUser.name);
 		eventLog.Log(userCreated);
 		userStore.Created(userCreated);
 

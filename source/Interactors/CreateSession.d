@@ -8,7 +8,7 @@ class CreateSession {
 	SessionStore sessionStore;
 
 	UUID opCall() {
-		auto sessionCreated = SessionCreated(randomUUID, UUID.init);
+		auto sessionCreated = SessionCreated(randomUUID);
 		sessionStore.Created(sessionCreated);
 		return sessionCreated.uuid;
 	}
