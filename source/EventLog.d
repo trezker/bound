@@ -7,18 +7,12 @@ import std.datetime;
 import std.variant;
 import std.conv;
 import std.json;
+import std.algorithm;
 import painlessjson;
 
-struct TestStuff {
-	string stuffString;
-	int stuffInt;
-}
-
-struct EventTested {
-	string stringMember;
-	int intMember;
-	TestStuff[] stuffs;
-}
+alias LogWriter = bool delegate(string);
+alias LogLineCallback = void delegate(string);
+alias LogReader = void delegate(LogLineCallback);
 
 struct EventType {
 	string name;
@@ -28,21 +22,25 @@ struct EventType {
 
 class EventLog {
 	EventType[TypeInfo] eventTypes;
-	string path;
+	//string path;
+	LogWriter logWriter;
+	LogReader logReader;
 
 	void AddType(EventType type) {
 		eventTypes[type.typeInfo] = type;
 	}
 
-	void Log(T)(T event) {
+	bool Log(T)(T event) {
 		JSONValue json;
 		json["timestamp"] = JSONValue(Clock.currTime.toISOExtString);
 		json["data"] = event.toJSON;
 		json["type"] = eventTypes[typeid(event)].name;
 		
-		File file = File(path, "a"); 
+		return logWriter(json.toString());
+		/*
+		File file = File(path, "a");
 		file.writeln(json.toString());
-		file.close(); 
+		file.close();*/
 	}
 
 	void Load() {
@@ -51,6 +49,13 @@ class EventLog {
 			eventTypesByName[type.name] = type;
 		}
 
+		void LoadLine(string line) {
+			JSONValue json = parseJSON(line);
+			eventTypesByName[json["type"].str].loader(json);
+		}
+
+		logReader(&LoadLine);
+/*
 		File file = File(path, "r"); 
 		while(!file.eof) {
 			string line = file.readln();
@@ -60,7 +65,21 @@ class EventLog {
 			}
 		}
 
-		file.close();
+		file.close();*/
+	}
+}
+
+class MemoryLog {
+	string[] logs;
+
+	bool Write(string log) {
+		logs ~= log;
+		return true;
+	}
+
+	void Read(LogLineCallback callback) {
+		logs.each!(line => callback(line));
+
 	}
 }
 
@@ -75,7 +94,6 @@ class Test: TestSuite {
 	}
 
 	override void Teardown() {
-		remove("test.log");
 	}
 
 	void Loader(JSONValue json) {
@@ -83,8 +101,10 @@ class Test: TestSuite {
 	}
 
 	void Log() {
+		MemoryLog log = new MemoryLog;
 		auto eventLog = new EventLog();
-		eventLog.path = "test.log";
+		eventLog.logWriter = &log.Write;
+		eventLog.logReader = &log.Read;
 
 		auto type = EventType("EventTested", typeid(EventTested), &this.Loader);
 		eventLog.AddType(type);
@@ -101,6 +121,17 @@ class Test: TestSuite {
 		assertEqual(event1, eventsLoaded[0]);
 		assertEqual(event2, eventsLoaded[1]);
 	}
+}
+
+struct TestStuff {
+	string stuffString;
+	int stuffInt;
+}
+
+struct EventTested {
+	string stringMember;
+	int intMember;
+	TestStuff[] stuffs;
 }
 
 unittest {

@@ -57,9 +57,10 @@ class Test: TestSuite {
 	override void Setup() {
 		userStore = new UserStore;
 		keyStore = new KeyStore;
-
+		auto log = new MemoryLog;
 		eventLog = new EventLog();
-		eventLog.path = "test.log";
+		eventLog.logWriter = &log.Write;
+		eventLog.logReader = &log.Read;
 		auto userCreatedType = EventType("UserCreated", typeid(UserCreated), &this.UserLoader);
 		eventLog.AddType(userCreatedType);
 		auto keyCreatedType = EventType("KeyCreated", typeid(KeyCreated), &this.KeyLoader);
