@@ -19,6 +19,7 @@ class CreateUser {
 	UserStore userStore;
 	KeyStore keyStore;
 	EventLog eventLog;
+	string delegate() idGenerator;
 
 	bool opCall(NewUser newUser) {
 		User[] user = userStore.FindByName(newUser.name);
@@ -26,13 +27,13 @@ class CreateUser {
 			return false;
 		}
 
-		auto userCreated = UserCreated(randomUUID.toString, newUser.name);
+		auto userCreated = UserCreated(idGenerator(), newUser.name);
 		eventLog.Log(userCreated);
 		userStore.Created(userCreated);
 
 		string hashedPassword = makeHash(toPassword(newUser.password.dup)).toString();
 		KeyCreated keyCreated = {
-			uuid: randomUUID.toString,
+			uuid: idGenerator(),
 			lock: userCreated.uuid, 
 			value: hashedPassword
 		};
@@ -70,6 +71,10 @@ class Test: TestSuite {
 		userCreator.userStore = userStore;
 		userCreator.keyStore = keyStore;
 		userCreator.eventLog = eventLog;
+		string IdGenerator() {
+			return randomUUID.toString;
+		}
+		userCreator.idGenerator = &IdGenerator;
 	}
 
 	override void Teardown() {
