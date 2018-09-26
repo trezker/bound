@@ -22,7 +22,6 @@ struct EventType {
 
 class EventLog {
 	EventType[TypeInfo] eventTypes;
-	//string path;
 	LogWriter logWriter;
 	LogReader logReader;
 
@@ -37,10 +36,6 @@ class EventLog {
 		json["type"] = eventTypes[typeid(event)].name;
 		
 		return logWriter(json.toString());
-		/*
-		File file = File(path, "a");
-		file.writeln(json.toString());
-		file.close();*/
 	}
 
 	void Load() {
@@ -55,17 +50,6 @@ class EventLog {
 		}
 
 		logReader(&LoadLine);
-/*
-		File file = File(path, "r"); 
-		while(!file.eof) {
-			string line = file.readln();
-			if(line != "") {
-				JSONValue json = parseJSON(line);
-				eventTypesByName[json["type"].str].loader(json);
-			}
-		}
-
-		file.close();*/
 	}
 }
 
@@ -80,6 +64,29 @@ class MemoryLog {
 	void Read(LogLineCallback callback) {
 		logs.each!(line => callback(line));
 
+	}
+}
+
+class FileLog {
+	string path;
+
+	bool Write(string log) {
+		File file = File(path, "a");
+		file.writeln(log);
+		file.close();
+		return true;
+	}
+
+	void Read(LogLineCallback callback) {
+		File file = File(path, "r"); 
+		while(!file.eof) {
+			string line = file.readln();
+			if(line != "") {
+				callback(line);
+			}
+		}
+
+		file.close();
 	}
 }
 
