@@ -29,6 +29,10 @@ class UserStore {
 	User[] FindByName(string name) {
 		return users.find!((a, b) => toLower(a.name) == b)(toLower(name));
 	}
+
+	User[] FindById(string id) {
+		return users.find!((a) => a.uuid == id)();
+	}
 }
 
 class Test: TestSuite {
