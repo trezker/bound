@@ -1,4 +1,4 @@
-module interactors.logout;
+module interactors.Logout;
 
 import std.uuid;
 import test;

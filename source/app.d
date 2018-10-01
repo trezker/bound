@@ -1,41 +1,44 @@
 import std.stdio;
+import std.json;
+import std.uuid;
+import painlessjson;
+import std.socket;
 
+import Network.Server;
+import interactors.CreateSession;
+import interactors.CreateUser;
+import interactors.CurrentUser;
+import interactors.Login;
+import interactors.Logout;
+
+import entities.Session;
+
+class Handler {
+	CreateSession interactor;
+
+	JSONValue call(JSONValue message) {
+		return interactor().toJSON;
+	}
+}
 
 void main() {
-/*
-	auto listener = new Socket(AddressFamily.INET, SocketType.STREAM, ProtocolType.TCP);
-	listener.bind(new InternetAddress("localhost", 2525));
-	listener.listen(10);
+	auto server = new Server();
+	server.internetAddress = new InternetAddress("localhost", 2525);
 
-	auto readSet = new SocketSet();
-	Socket[] connectedClients;
-	bool isRunning = true;
-	
-	while(isRunning) {
-		readSet.reset();
-		readSet.add(listener);
-		
-		foreach(client; connectedClients)
-			readSet.add(client);
-		
-		if(Socket.select(readSet, null, null)) {
-			foreach(client; connectedClients) {
-				if(readSet.isSet(client)) {
-					string message = ReadMessage(client);
-					if(message.length == 0) {
-						connectedClients = filter!(a => a != client)(connectedClients).array;
-					}
-					writeln("Client sent: ", message);
-				}
-			}
+	auto sessionStore = new SessionStore;
+	string IdGenerator() {
+		return randomUUID.toString;
+	}
 
-			if(readSet.isSet(listener)) {
-				// the listener is ready to read, that means
-				// a new client wants to connect. We accept it here.
-				auto newSocket = listener.accept();
-				newSocket.send("Hello!\n"); // say hello
-				connectedClients ~= newSocket; // add to our list
-			}
-		}
-	}*/
+
+	auto createSession = new CreateSession;
+	createSession.sessionStore = sessionStore;
+	createSession.idGenerator = &IdGenerator;
+
+	auto handler = new Handler;
+	handler.interactor = createSession;
+
+	server.SetHandler("test", &handler.call);
+
+	server.Run();
 }
