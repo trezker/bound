@@ -8,22 +8,6 @@
 		"painlessjson": "~>1.3.9"
 	},
 	"description": "A minimal D application.",
-	"copyright": "Copyright © 2018, anders andersson",
-	"license": "MIT",
-	"configurations": [
-	    {
-	        "name": "server",
-	        "targetType": "executable",
-	        "mainSourceFile": "source/app.d",
-	        "excludedSourceFiles": [ "source/tcptest.d" ],
-	        "targetName": "bound"
-	    },
-	    {
-	        "name": "tcptest",
-	        "targetType": "executable",
-	        "mainSourceFile": "source/tcptest.d",
-	        "excludedSourceFiles": [ "source/app.d" ],
-	        "targetName": "tcptest"
-	    }
-	]	
+	"copyright": "Copyright © 2018, Anders Andersson",
+	"license": "MIT"
 }
