@@ -91,6 +91,7 @@ void main() {
 	server.SetHandler("CreateUser", &createUserHandler.call);
 	server.SetHandler("CurrentUser", &currentUserHandler.call);
 	server.SetHandler("Login", &loginHandler.call);
+	server.SetHandler("Logout", &logoutHandler.call);
 
 	server.Run();
 }
