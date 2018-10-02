@@ -9,8 +9,9 @@ import std.stdio;
 class Logout {
 	SessionStore sessionStore;
 
-	void opCall(string uuid) {
+	bool opCall(string uuid) {
 		sessionStore.Deleted(uuid);
+		return true;
 	}
 }
 

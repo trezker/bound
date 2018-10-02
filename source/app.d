@@ -65,11 +65,32 @@ void main() {
 	auto createUserHandler = new Handler!(CreateUser, NewUser);
 	createUserHandler.interactor = createUser;
 
+	auto currentUser = new CurrentUser;
+	currentUser.userStore = userStore;
+	currentUser.sessionStore = sessionStore;
+	auto currentUserHandler = new Handler!(CurrentUser, string);
+	currentUserHandler.interactor = currentUser;
+
+	auto login = new Login;
+	login.userStore = userStore;
+	login.keyStore = keyStore;
+	login.sessionStore = sessionStore;
+	auto loginHandler = new Handler!(Login, Credentials);
+	loginHandler.interactor = login;
+
+	auto logout = new Logout;
+	logout.sessionStore = sessionStore;
+	auto logoutHandler = new Handler!(Logout, string);
+	logoutHandler.interactor = logout;
+
+
 	auto server = new Server();
 	server.internetAddress = new InternetAddress("localhost", 2525);
 
 	server.SetHandler("CreateSession", &createSessionHandler.call);
 	server.SetHandler("CreateUser", &createUserHandler.call);
+	server.SetHandler("CurrentUser", &currentUserHandler.call);
+	server.SetHandler("Login", &loginHandler.call);
 
-	//server.Run();
+	server.Run();
 }
