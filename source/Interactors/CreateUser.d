@@ -1,17 +1,14 @@
 module interactors.CreateUser;
 
-import std.uuid;
-import std.stdio;
-import std.json;
-import painlessjson;
-import dauth;
-import poodinis;
-
 import test;
-import EventLog;
-import IdGenerator;
+import dauth;
 import entities.User;
 import entities.Key;
+import std.uuid;
+import std.stdio;
+import EventLog;
+import std.json;
+import painlessjson;
 
 struct NewUser {
 	string name;
@@ -22,7 +19,7 @@ class CreateUser {
 	UserStore userStore;
 	KeyStore keyStore;
 	EventLog eventLog;
-	IdGenerator idGenerator;
+	string delegate() idGenerator;
 
 	bool opCall(NewUser newUser) {
 		User[] user = userStore.FindByName(newUser.name);
@@ -59,7 +56,6 @@ class Test: TestSuite {
 	}
 
 	override void Setup() {
-		auto idGenerator = new IdGenerator;
 		userStore = new UserStore;
 		keyStore = new KeyStore;
 		auto log = new MemoryLog;
@@ -75,7 +71,10 @@ class Test: TestSuite {
 		userCreator.userStore = userStore;
 		userCreator.keyStore = keyStore;
 		userCreator.eventLog = eventLog;
-		userCreator.idGenerator = idGenerator;
+		string IdGenerator() {
+			return randomUUID.toString;
+		}
+		userCreator.idGenerator = &IdGenerator;
 	}
 
 	override void Teardown() {
