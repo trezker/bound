@@ -3,10 +3,14 @@ module interactors.CreateSession;
 import test;
 import std.uuid;
 import entities.Session;
+import IdGenerator;
+import poodinis;
 
 class CreateSession {
-	SessionStore sessionStore;
-	string delegate() idGenerator;
+	@Autowire
+	private SessionStore sessionStore;
+	@Autowire
+	private IdGenerator idGenerator;
 
 	string opCall() {
 		auto sessionCreated = SessionCreated(idGenerator());
@@ -24,14 +28,11 @@ class Test: TestSuite {
 	}
 
 	override void Setup() {
-		sessionStore = new SessionStore;
+		auto dependencies = new shared DependencyContainer();
+		sessionStore = dependencies.resolve!SessionStore(ResolveOption.registerBeforeResolving);
+		auto idGenerator = dependencies.resolve!IdGenerator(ResolveOption.registerBeforeResolving);
 
-		createSession = new CreateSession;
-		createSession.sessionStore = sessionStore;
-		string IdGenerator() {
-			return randomUUID.toString;
-		}
-		createSession.idGenerator = &IdGenerator;
+		createSession = dependencies.resolve!CreateSession(ResolveOption.registerBeforeResolving);;
 	}
 
 	void CreateSession_creates_session_and_returns_uuid() {

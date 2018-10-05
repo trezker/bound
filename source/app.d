@@ -3,6 +3,7 @@ import std.json;
 import std.uuid;
 import painlessjson;
 import std.socket;
+import poodinis;
 
 import Network.Server;
 import interactors.CreateSession;
@@ -12,6 +13,7 @@ import interactors.Login;
 import interactors.Logout;
 
 import EventLog;
+import IdGenerator;
 import entities.Session;
 import entities.User;
 import entities.Key;
@@ -34,10 +36,12 @@ class Handler(T, U) {
 }
 
 void main() {
-	string IdGenerator() {
+	auto dependencies = new shared DependencyContainer();
+	string IdGeneratorf() {
 		return randomUUID.toString;
 	}
-	auto sessionStore = new SessionStore;
+	auto idGenerator = dependencies.resolve!IdGenerator(ResolveOption.registerBeforeResolving);
+	auto sessionStore = dependencies.resolve!SessionStore(ResolveOption.registerBeforeResolving);
 	auto userStore = new UserStore;
 	auto keyStore = new KeyStore;
 
@@ -51,9 +55,7 @@ void main() {
 	eventLog.AddType(keyCreatedType);
 
 
-	auto createSession = new CreateSession;
-	createSession.sessionStore = sessionStore;
-	createSession.idGenerator = &IdGenerator;
+	auto createSession = dependencies.resolve!CreateSession(ResolveOption.registerBeforeResolving);
 	auto createSessionHandler = new Handler!(CreateSession);
 	createSessionHandler.interactor = createSession;
 
@@ -61,7 +63,7 @@ void main() {
 	createUser.userStore = userStore;
 	createUser.keyStore = keyStore;
 	createUser.eventLog = eventLog;
-	createUser.idGenerator = &IdGenerator;
+	createUser.idGenerator = &IdGeneratorf;
 	auto createUserHandler = new Handler!(CreateUser, NewUser);
 	createUserHandler.interactor = createUser;
 
