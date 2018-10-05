@@ -7,10 +7,8 @@ import IdGenerator;
 import poodinis;
 
 class CreateSession {
-	@Autowire
-	private SessionStore sessionStore;
-	@Autowire
-	private IdGenerator idGenerator;
+	@Autowire private SessionStore sessionStore;
+	@Autowire private IdGenerator idGenerator;
 
 	string opCall() {
 		auto sessionCreated = SessionCreated(idGenerator());

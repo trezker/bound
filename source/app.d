@@ -37,9 +37,6 @@ class Handler(T, U) {
 
 void main() {
 	auto dependencies = new shared DependencyContainer();
-	string IdGeneratorf() {
-		return randomUUID.toString;
-	}
 	auto idGenerator = dependencies.resolve!IdGenerator(ResolveOption.registerBeforeResolving);
 	auto sessionStore = dependencies.resolve!SessionStore(ResolveOption.registerBeforeResolving);
 	auto userStore = new UserStore;
@@ -63,7 +60,7 @@ void main() {
 	createUser.userStore = userStore;
 	createUser.keyStore = keyStore;
 	createUser.eventLog = eventLog;
-	createUser.idGenerator = &IdGeneratorf;
+	createUser.idGenerator = idGenerator;
 	auto createUserHandler = new Handler!(CreateUser, NewUser);
 	createUserHandler.interactor = createUser;
 
