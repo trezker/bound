@@ -2,11 +2,16 @@ module interactors.CreateSession;
 
 import test;
 import std.uuid;
+import DependencyStore;
 import entities.Session;
 
 class CreateSession {
-	SessionStore sessionStore;
+	private SessionStore sessionStore;
 	string delegate() idGenerator;
+
+	this(DependencyStore dependencyStore) {
+		sessionStore = dependencyStore.Use!SessionStore;
+	}
 
 	string opCall() {
 		auto sessionCreated = SessionCreated(idGenerator());
@@ -24,10 +29,11 @@ class Test: TestSuite {
 	}
 
 	override void Setup() {
+		auto dependencyStore = new DependencyStore;
 		sessionStore = new SessionStore;
+		dependencyStore.Add(sessionStore);
 
-		createSession = new CreateSession;
-		createSession.sessionStore = sessionStore;
+		createSession = new CreateSession(dependencyStore);
 		string IdGenerator() {
 			return randomUUID.toString;
 		}

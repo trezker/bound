@@ -11,6 +11,7 @@ import interactors.CurrentUser;
 import interactors.Login;
 import interactors.Logout;
 
+import DependencyStore;
 import EventLog;
 import entities.Session;
 import entities.User;
@@ -34,10 +35,12 @@ class Handler(T, U) {
 }
 
 void main() {
+	auto dependencyStore = new DependencyStore;
 	string IdGenerator() {
 		return randomUUID.toString;
 	}
 	auto sessionStore = new SessionStore;
+	dependencyStore.Add(sessionStore);
 	auto userStore = new UserStore;
 	auto keyStore = new KeyStore;
 
@@ -51,8 +54,7 @@ void main() {
 	eventLog.AddType(keyCreatedType);
 
 
-	auto createSession = new CreateSession;
-	createSession.sessionStore = sessionStore;
+	auto createSession = new CreateSession(dependencyStore);
 	createSession.idGenerator = &IdGenerator;
 	auto createSessionHandler = new Handler!(CreateSession);
 	createSessionHandler.interactor = createSession;
