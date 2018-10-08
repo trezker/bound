@@ -20,12 +20,13 @@ struct NewUser {
 class CreateUser {
 	private UserStore userStore;
 	private KeyStore keyStore;
-	EventLog eventLog;
+	private EventLog eventLog;
 	string delegate() idGenerator;
 
 	this(DependencyStore dependencyStore) {
 		userStore = dependencyStore.Use!UserStore;
 		keyStore = dependencyStore.Use!KeyStore;
+		eventLog = dependencyStore.Use!EventLog;
 	}
 
 	bool opCall(NewUser newUser) {
@@ -68,8 +69,9 @@ class Test: TestSuite {
 		dependencyStore.Add(userStore);
 		keyStore = new KeyStore;
 		dependencyStore.Add(keyStore);
-		auto log = new MemoryLog;
 		eventLog = new EventLog();
+		dependencyStore.Add(eventLog);
+		auto log = new MemoryLog;
 		eventLog.logWriter = &log.Write;
 		eventLog.logReader = &log.Read;
 		auto userCreatedType = EventType("UserCreated", typeid(UserCreated), &this.UserLoader);
@@ -78,7 +80,6 @@ class Test: TestSuite {
 		eventLog.AddType(keyCreatedType);
 
 		userCreator = new CreateUser(dependencyStore);
-		userCreator.eventLog = eventLog;
 		string IdGenerator() {
 			return randomUUID.toString;
 		}
