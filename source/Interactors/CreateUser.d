@@ -1,14 +1,16 @@
 module interactors.CreateUser;
 
-import test;
-import dauth;
-import entities.User;
-import entities.Key;
 import std.uuid;
 import std.stdio;
-import EventLog;
 import std.json;
 import painlessjson;
+import dauth;
+
+import test;
+import EventLog;
+import DependencyStore;
+import entities.User;
+import entities.Key;
 
 struct NewUser {
 	string name;
@@ -20,6 +22,10 @@ class CreateUser {
 	KeyStore keyStore;
 	EventLog eventLog;
 	string delegate() idGenerator;
+
+	this(DependencyStore dependencyStore) {
+		userStore = dependencyStore.Use!UserStore;
+	}
 
 	bool opCall(NewUser newUser) {
 		User[] user = userStore.FindByName(newUser.name);
@@ -56,7 +62,10 @@ class Test: TestSuite {
 	}
 
 	override void Setup() {
+		auto dependencyStore = new DependencyStore;
 		userStore = new UserStore;
+		dependencyStore.Add(userStore);
+
 		keyStore = new KeyStore;
 		auto log = new MemoryLog;
 		eventLog = new EventLog();
@@ -67,8 +76,7 @@ class Test: TestSuite {
 		auto keyCreatedType = EventType("KeyCreated", typeid(KeyCreated), &this.KeyLoader);
 		eventLog.AddType(keyCreatedType);
 
-		userCreator = new CreateUser;
-		userCreator.userStore = userStore;
+		userCreator = new CreateUser(dependencyStore);
 		userCreator.keyStore = keyStore;
 		userCreator.eventLog = eventLog;
 		string IdGenerator() {
