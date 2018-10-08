@@ -46,6 +46,7 @@ void main() {
 	auto userStore = new UserStore;
 	dependencyStore.Add(userStore);
 	auto keyStore = new KeyStore;
+	dependencyStore.Add(keyStore);
 
 	auto log = new MemoryLog;
 	auto eventLog = new EventLog();
@@ -62,7 +63,6 @@ void main() {
 	createSessionHandler.interactor = createSession;
 
 	auto createUser = new CreateUser(dependencyStore);
-	createUser.keyStore = keyStore;
 	createUser.eventLog = eventLog;
 	createUser.idGenerator = &IdGeneratorf;
 	auto createUserHandler = new Handler!(CreateUser, NewUser);
