@@ -8,6 +8,7 @@ import dauth;
 
 import test;
 import EventLog;
+import IdGenerator;
 import DependencyStore;
 import entities.User;
 import entities.Key;
@@ -21,12 +22,13 @@ class CreateUser {
 	private UserStore userStore;
 	private KeyStore keyStore;
 	private EventLog eventLog;
-	string delegate() idGenerator;
+	private IdGenerator idGenerator;
 
 	this(DependencyStore dependencyStore) {
 		userStore = dependencyStore.Use!UserStore;
 		keyStore = dependencyStore.Use!KeyStore;
 		eventLog = dependencyStore.Use!EventLog;
+		idGenerator = dependencyStore.Use!IdGenerator;
 	}
 
 	bool opCall(NewUser newUser) {
@@ -65,6 +67,7 @@ class Test: TestSuite {
 
 	override void Setup() {
 		auto dependencyStore = new DependencyStore;
+		dependencyStore.Add(new IdGenerator);
 		userStore = new UserStore;
 		dependencyStore.Add(userStore);
 		keyStore = new KeyStore;
@@ -80,10 +83,6 @@ class Test: TestSuite {
 		eventLog.AddType(keyCreatedType);
 
 		userCreator = new CreateUser(dependencyStore);
-		string IdGenerator() {
-			return randomUUID.toString;
-		}
-		userCreator.idGenerator = &IdGenerator;
 	}
 
 	override void Teardown() {

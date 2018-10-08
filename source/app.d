@@ -37,9 +37,6 @@ class Handler(T, U) {
 
 void main() {
 	auto dependencyStore = new DependencyStore;
-	string IdGeneratorf() {
-		return randomUUID.toString;
-	}
 	dependencyStore.Add(new IdGenerator);
 	auto sessionStore = new SessionStore;
 	dependencyStore.Add(sessionStore);
@@ -64,7 +61,6 @@ void main() {
 	createSessionHandler.interactor = createSession;
 
 	auto createUser = new CreateUser(dependencyStore);
-	createUser.idGenerator = &IdGeneratorf;
 	auto createUserHandler = new Handler!(CreateUser, NewUser);
 	createUserHandler.interactor = createUser;
 
