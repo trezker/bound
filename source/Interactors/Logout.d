@@ -1,13 +1,18 @@
 module interactors.Logout;
 
-import std.uuid;
-import test;
-import entities.Session;
 import std.stdio;
+import std.uuid;
 
+import test;
+import DependencyStore;
+import entities.Session;
 
 class Logout {
 	SessionStore sessionStore;
+
+	this(DependencyStore dependencyStore) {
+		sessionStore = dependencyStore.Use!SessionStore;
+	}
 
 	bool opCall(string uuid) {
 		sessionStore.Deleted(uuid);
@@ -21,12 +26,14 @@ class Test: TestSuite {
 	}
 
 	void Logout_removes_session() {
+		auto dependencyStore = new DependencyStore;
 		auto sessionStore = new SessionStore;
+		dependencyStore.Add(sessionStore);
+
 		auto sessionCreated = SessionCreated(randomUUID.toString);
 		sessionStore.Created(sessionCreated);
 
-		auto logout = new Logout;
-		logout.sessionStore = sessionStore;
+		auto logout = new Logout(dependencyStore);
 
 		logout(sessionCreated.uuid);
 
