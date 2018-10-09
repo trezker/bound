@@ -1,13 +1,15 @@
 module interactors.Login;
 
-import test;
-import dauth;
 import std.uuid;
 import std.json;
+import dauth;
+import painlessjson;
+
+import test;
+import DependencyStore;
 import entities.User;
 import entities.Key;
 import entities.Session;
-import painlessjson;
 
 struct Credentials {
 	string session;
@@ -19,6 +21,12 @@ class Login {
 	UserStore userStore;
 	KeyStore keyStore;
 	SessionStore sessionStore;
+
+	this(DependencyStore dependencyStore) {
+		userStore = dependencyStore.Use!UserStore;
+		keyStore = dependencyStore.Use!KeyStore;
+		sessionStore = dependencyStore.Use!SessionStore;
+	}
 
 	bool opCall(Credentials credentials) {
 		User[] users = userStore.FindByName(credentials.name);
@@ -54,14 +62,15 @@ class Test: TestSuite {
 	}
 
 	override void Setup() {
+		auto dependencyStore = new DependencyStore;
 		sessionStore = new SessionStore;
+		dependencyStore.Add(sessionStore);
 		auto userStore = new UserStore;
+		dependencyStore.Add(userStore);
 		auto keyStore = new KeyStore;
+		dependencyStore.Add(keyStore);
 
-		login = new Login;
-		login.userStore = userStore;
-		login.keyStore = keyStore;
-		login.sessionStore = sessionStore;
+		login = new Login(dependencyStore);
 
 		sessionCreated = SessionCreated(randomUUID.toString);
 		sessionStore.Created(sessionCreated);

@@ -68,10 +68,7 @@ void main() {
 	auto currentUserHandler = new Handler!(CurrentUser, string);
 	currentUserHandler.interactor = currentUser;
 
-	auto login = new Login;
-	login.userStore = userStore;
-	login.keyStore = keyStore;
-	login.sessionStore = sessionStore;
+	auto login = new Login(dependencyStore);
 	auto loginHandler = new Handler!(Login, Credentials);
 	loginHandler.interactor = login;
 
