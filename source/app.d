@@ -64,9 +64,7 @@ void main() {
 	auto createUserHandler = new Handler!(CreateUser, NewUser);
 	createUserHandler.interactor = createUser;
 
-	auto currentUser = new CurrentUser;
-	currentUser.userStore = userStore;
-	currentUser.sessionStore = sessionStore;
+	auto currentUser = new CurrentUser(dependencyStore);
 	auto currentUserHandler = new Handler!(CurrentUser, string);
 	currentUserHandler.interactor = currentUser;
 
