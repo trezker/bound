@@ -11,13 +11,19 @@ import interactors.CurrentUser;
 import interactors.Login;
 import interactors.Logout;
 
+import DependencyStore;
+import IdGenerator;
 import EventLog;
 import entities.Session;
 import entities.User;
 import entities.Key;
 
 class Handler(T) {
-	T interactor;
+	private T interactor;
+
+	this(T i) {
+		interactor = i;
+	}
 
 	JSONValue call(JSONValue message) {
 		return interactor().toJSON;
@@ -25,7 +31,11 @@ class Handler(T) {
 }
 
 class Handler(T, U) {
-	T interactor;
+	private T interactor;
+
+	this(T i) {
+		interactor = i;
+	}
 
 	JSONValue call(JSONValue message) {
 		U data = message["data"].fromJSON!(U);
@@ -34,15 +44,18 @@ class Handler(T, U) {
 }
 
 void main() {
-	string IdGenerator() {
-		return randomUUID.toString;
-	}
+	auto dependencyStore = new DependencyStore;
+	dependencyStore.Add(new IdGenerator);
 	auto sessionStore = new SessionStore;
+	dependencyStore.Add(sessionStore);
 	auto userStore = new UserStore;
+	dependencyStore.Add(userStore);
 	auto keyStore = new KeyStore;
+	dependencyStore.Add(keyStore);
 
-	auto log = new MemoryLog;
 	auto eventLog = new EventLog();
+	dependencyStore.Add(eventLog);
+	auto log = new MemoryLog;
 	eventLog.logWriter = &log.Write;
 	eventLog.logReader = &log.Read;
 	auto userCreatedType = EventType("UserCreated", typeid(UserCreated), null);
@@ -51,37 +64,20 @@ void main() {
 	eventLog.AddType(keyCreatedType);
 
 
-	auto createSession = new CreateSession;
-	createSession.sessionStore = sessionStore;
-	createSession.idGenerator = &IdGenerator;
-	auto createSessionHandler = new Handler!(CreateSession);
-	createSessionHandler.interactor = createSession;
+	auto createSession = new CreateSession(dependencyStore);
+	auto createSessionHandler = new Handler!(CreateSession)(createSession);
 
-	auto createUser = new CreateUser;
-	createUser.userStore = userStore;
-	createUser.keyStore = keyStore;
-	createUser.eventLog = eventLog;
-	createUser.idGenerator = &IdGenerator;
-	auto createUserHandler = new Handler!(CreateUser, NewUser);
-	createUserHandler.interactor = createUser;
+	auto createUser = new CreateUser(dependencyStore);
+	auto createUserHandler = new Handler!(CreateUser, NewUser)(createUser);
 
-	auto currentUser = new CurrentUser;
-	currentUser.userStore = userStore;
-	currentUser.sessionStore = sessionStore;
-	auto currentUserHandler = new Handler!(CurrentUser, string);
-	currentUserHandler.interactor = currentUser;
+	auto currentUser = new CurrentUser(dependencyStore);
+	auto currentUserHandler = new Handler!(CurrentUser, string)(currentUser);
 
-	auto login = new Login;
-	login.userStore = userStore;
-	login.keyStore = keyStore;
-	login.sessionStore = sessionStore;
-	auto loginHandler = new Handler!(Login, Credentials);
-	loginHandler.interactor = login;
+	auto login = new Login(dependencyStore);
+	auto loginHandler = new Handler!(Login, Credentials)(login);
 
-	auto logout = new Logout;
-	logout.sessionStore = sessionStore;
-	auto logoutHandler = new Handler!(Logout, string);
-	logoutHandler.interactor = logout;
+	auto logout = new Logout(dependencyStore);
+	auto logoutHandler = new Handler!(Logout, string)(logout);
 
 
 	auto server = new Server();

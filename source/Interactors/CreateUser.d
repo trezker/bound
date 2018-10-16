@@ -1,14 +1,17 @@
 module interactors.CreateUser;
 
-import test;
-import dauth;
-import entities.User;
-import entities.Key;
 import std.uuid;
 import std.stdio;
-import EventLog;
 import std.json;
 import painlessjson;
+import dauth;
+
+import test;
+import EventLog;
+import IdGenerator;
+import DependencyStore;
+import entities.User;
+import entities.Key;
 
 struct NewUser {
 	string name;
@@ -16,10 +19,17 @@ struct NewUser {
 }
 
 class CreateUser {
-	UserStore userStore;
-	KeyStore keyStore;
-	EventLog eventLog;
-	string delegate() idGenerator;
+	private UserStore userStore;
+	private KeyStore keyStore;
+	private EventLog eventLog;
+	private IdGenerator idGenerator;
+
+	this(DependencyStore dependencyStore) {
+		userStore = dependencyStore.Use!UserStore;
+		keyStore = dependencyStore.Use!KeyStore;
+		eventLog = dependencyStore.Use!EventLog;
+		idGenerator = dependencyStore.Use!IdGenerator;
+	}
 
 	bool opCall(NewUser newUser) {
 		User[] user = userStore.FindByName(newUser.name);
@@ -56,10 +66,15 @@ class Test: TestSuite {
 	}
 
 	override void Setup() {
+		auto dependencyStore = new DependencyStore;
+		dependencyStore.Add(new IdGenerator);
 		userStore = new UserStore;
+		dependencyStore.Add(userStore);
 		keyStore = new KeyStore;
-		auto log = new MemoryLog;
+		dependencyStore.Add(keyStore);
 		eventLog = new EventLog();
+		dependencyStore.Add(eventLog);
+		auto log = new MemoryLog;
 		eventLog.logWriter = &log.Write;
 		eventLog.logReader = &log.Read;
 		auto userCreatedType = EventType("UserCreated", typeid(UserCreated), &this.UserLoader);
@@ -67,14 +82,7 @@ class Test: TestSuite {
 		auto keyCreatedType = EventType("KeyCreated", typeid(KeyCreated), &this.KeyLoader);
 		eventLog.AddType(keyCreatedType);
 
-		userCreator = new CreateUser;
-		userCreator.userStore = userStore;
-		userCreator.keyStore = keyStore;
-		userCreator.eventLog = eventLog;
-		string IdGenerator() {
-			return randomUUID.toString;
-		}
-		userCreator.idGenerator = &IdGenerator;
+		userCreator = new CreateUser(dependencyStore);
 	}
 
 	override void Teardown() {
